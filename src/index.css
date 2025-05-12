@@ -2,73 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import React Toast CSS */
-@import 'react-toastify/dist/ReactToastify.css';
-
 @layer base {
-  body {
-    @apply font-sans text-surface-800 dark:text-surface-100 antialiased;
+  :root {
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   }
   
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-semibold;
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
   }
   
-  h1 {
-    @apply text-3xl md:text-4xl lg:text-5xl;
-  }
-  
-  h2 {
-    @apply text-2xl md:text-3xl lg:text-4xl;
-  }
-  
-  h3 {
-    @apply text-xl md:text-2xl lg:text-3xl;
+  /* Set default focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-surface-900;
   }
 }
 
 @layer components {
-  .btn {
-    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
-  }
-  
-  .btn-primary {
-    @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary;
-  }
-  
-  .btn-secondary {
-    @apply bg-secondary text-white hover:bg-secondary-dark focus:ring-secondary;
-  }
-  
-  .btn-outline {
-    @apply border border-surface-300 dark:border-surface-700 bg-transparent hover:bg-surface-100 dark:hover:bg-surface-800 focus:ring-surface-400;
-  }
-  
-  .input {
-    @apply w-full px-4 py-2 bg-white dark:bg-surface-800 border border-surface-300 dark:border-surface-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
   }
   
   .card {
-    @apply bg-white dark:bg-surface-800 rounded-xl shadow-card dark:shadow-none border border-surface-200 dark:border-surface-700 p-4 md:p-6 transition-all duration-200;
+    @apply rounded-lg bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 shadow-sm p-4;
   }
   
-  .neu-button {
-    @apply px-6 py-3 rounded-xl font-medium transition-all duration-300 ease-in-out;
-    @apply bg-surface-100 dark:bg-surface-800 shadow-neu-light dark:shadow-neu-dark;
-    @apply hover:shadow-none active:shadow-inner;
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-colors duration-200;
+  }
+  
+  .btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-white;
+  }
+  
+  .btn-outline {
+    @apply border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700;
+  }
+  
+  .input {
+    @apply w-full rounded-lg border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 shadow-sm p-2;
   }
 }
 
-@layer utilities {
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
-  }
+/* Hide scrollbar for webkit browsers */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge, and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* ApperUI customization */
+#authentication .form-submit {
+  @apply bg-primary hover:bg-primary-dark;
+}
+
+#authentication .form-link {
+  @apply text-primary hover:text-primary-dark;
 }

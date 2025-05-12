@@ -3,39 +3,36 @@ import { motion } from 'framer-motion';
 import getIcon from '../utils/iconUtils';
 
 const NotFound = () => {
-  const Home = getIcon('Home');
   const AlertTriangle = getIcon('AlertTriangle');
+  const ArrowLeft = getIcon('ArrowLeft');
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4">
+    <div className="min-h-[calc(100vh-160px)] flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-center max-w-lg"
+        className="max-w-md w-full text-center bg-white dark:bg-surface-800 shadow-lg rounded-lg p-8"
       >
-        <div className="mx-auto w-24 h-24 mb-6 flex items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900">
-          <AlertTriangle size={40} className="text-orange-500" />
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+            <AlertTriangle size={36} className="text-red-500" />
+          </div>
         </div>
         
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 text-gradient">Page Not Found</h1>
-        
-        <p className="text-lg text-surface-600 dark:text-surface-300 mb-8">
-          Oops! It seems like the page you're looking for doesn't exist or has been moved.
+        <h1 className="text-4xl font-bold text-surface-800 dark:text-surface-100 mb-2">404</h1>
+        <h2 className="text-2xl font-semibold text-surface-700 dark:text-surface-200 mb-4">Page Not Found</h2>
+        <p className="text-surface-600 dark:text-surface-400 mb-8">
+          The page you're looking for doesn't exist or has been moved.
         </p>
         
-        <motion.div 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 bg-primary hover:bg-primary-dark text-white py-2 px-6 rounded-lg transition-colors"
         >
-          <Link 
-            to="/" 
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-medium hover:bg-primary-dark transition-colors duration-300"
-          >
-            <Home size={20} />
-            <span>Back to Home</span>
-          </Link>
-        </motion.div>
+          <ArrowLeft size={20} />
+          Back to Home
+        </Link>
       </motion.div>
     </div>
   );

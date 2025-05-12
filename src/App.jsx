@@ -1,17 +1,34 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { useState, useEffect, createContext } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
-import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from 'react-redux';
+import { setUser, clearUser } from './store/userSlice';
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
+import Navigation from './components/Navigation';
 import Home from './pages/Home';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 
+// Create auth context
+export const AuthContext = createContext(null);
+
 function App() {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [isInitialized, setIsInitialized] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark' || 
       (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
   });
-
+  
+  // Get authentication status with proper error handling
+  const userState = useSelector((state) => state.user);
+  const isAuthenticated = userState?.isAuthenticated || false;
+  
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -29,67 +46,110 @@ function App() {
       { autoClose: 1500 }
     );
   };
+  
+  // Initialize ApperUI once when the app loads
+  useEffect(() => {
+    const { ApperClient, ApperUI } = window.ApperSDK;
+    const client = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID || 'test-project-id',
+      apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY || 'test-public-key'
+    });
+    
+    // Initialize but don't show login yet
+    ApperUI.setup(client, {
+      target: '#authentication',
+      clientId: import.meta.env.VITE_APPER_PROJECT_ID || 'test-project-id',
+      view: 'both',
+      onSuccess: function(user) {
+        // Store user data in Redux store
+        let currentPath = window.location.pathname + window.location.search;
+        if (user && user.isAuthenticated) {
+          dispatch(setUser(JSON.parse(JSON.stringify(user))));
+          if (currentPath.includes('login') || currentPath.includes('signup')) {
+            navigate('/dashboard');
+          }
+        } else if (!currentPath.includes('login')) {
+          navigate(currentPath);
+        } else {
+          navigate('/login');
+        }
+      },
+      onError: function(error) {
+        console.error("Authentication failed:", error);
+        toast.error("Authentication failed. Please try again.");
+      }
+    });
+    
+    setIsInitialized(true);
+  }, [dispatch, navigate]);
+  
+  // Authentication methods to share via context
+  const authMethods = {
+    isInitialized,
+    isAuthenticated,
+    logout: async () => {
+      try {
+        const { ApperUI } = window.ApperSDK;
+        await ApperUI.logout();
+        dispatch(clearUser());
+        navigate('/login');
+        toast.info("You have been logged out");
+      } catch (error) {
+        console.error("Logout failed:", error);
+        toast.error("Logout failed. Please try again.");
+      }
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-white dark:bg-surface-800 border-b border-surface-200 dark:border-surface-700 py-3 px-4 md:px-6 lg:px-8">
-        <div className="container mx-auto flex items-center justify-between">
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="flex items-center gap-2"
-          >
-            <span className="font-bold text-xl md:text-2xl text-gradient">TaskFlow</span>
-          </motion.div>
-          
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={toggleDarkMode}
-            className="rounded-full p-2 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors duration-200"
-            aria-label="Toggle dark mode"
-          >
-            {isDarkMode ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-surface-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
-          </motion.button>
-        </div>
-      </header>
+    <AuthContext.Provider value={authMethods}>
+      <div className="min-h-screen flex flex-col">
+        <Navigation isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
 
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </main>
+        <main className="flex-grow">
+          <Routes>
+            {/* Public routes - accessible to everyone */}
+            <Route path="/" element={<Home />} />
+            
+            {/* Public routes - accessible only when NOT authenticated */}
+            <Route element={<PublicRoute />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+            </Route>
+            
+            {/* Protected routes - require authentication */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              {/* Add other protected routes here */}
+            </Route>
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
 
-      <footer className="bg-white dark:bg-surface-800 border-t border-surface-200 dark:border-surface-700 py-4 text-center text-surface-500 text-sm">
-        <div className="container mx-auto px-4">
-          <p>© {new Date().getFullYear()} TaskFlow. Stay organized.</p>
-        </div>
-      </footer>
+        <footer className="bg-white dark:bg-surface-800 border-t border-surface-200 dark:border-surface-700 py-4 text-center text-surface-500 text-sm">
+          <div className="container mx-auto px-4">
+            <p>© {new Date().getFullYear()} TaskFlow. Stay organized.</p>
+          </div>
+        </footer>
 
-      <ToastContainer
-        position="bottom-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme={isDarkMode ? "dark" : "light"}
-        toastClassName="!bg-white dark:!bg-surface-800 !shadow-card"
-        bodyClassName="!text-surface-800 dark:!text-surface-100"
-      />
-    </div>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme={isDarkMode ? "dark" : "light"}
+          toastClassName="!bg-white dark:!bg-surface-800 !shadow-card"
+          bodyClassName="!text-surface-800 dark:!text-surface-100"
+        />
+      </div>
+    </AuthContext.Provider>
   );
 }
 
