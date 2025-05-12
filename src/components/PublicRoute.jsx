@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 function PublicRoute() {
   const { isAuthenticated } = useSelector((state) => state.user);
   
-  // If already authenticated, redirect to dashboard
+  // If already authenticated, redirect to home/dashboard
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }

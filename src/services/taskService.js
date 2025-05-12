@@ -1,4 +1,5 @@
 // Task Service for Apper Backend Integration
+import { store } from '../store';
 
 /**
  * Fetches all tasks from the database
@@ -6,6 +7,14 @@
  */
 export const fetchTasks = async () => {
   try {
+    // Check authentication status before fetching
+    const { isAuthenticated } = store.getState().user;
+    
+    if (!isAuthenticated) {
+      console.error("Authentication required to fetch tasks");
+      return [];
+    }
+    
     const { ApperClient } = window.ApperSDK;
     const apperClient = new ApperClient({
       apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID || 'test-project-id',
@@ -53,6 +62,13 @@ export const fetchTasks = async () => {
  */
 export const createTask = async (taskData) => {
   try {
+    // Check authentication status before creating
+    const { isAuthenticated } = store.getState().user;
+    
+    if (!isAuthenticated) {
+      throw new Error("Authentication required to create tasks");
+    }
+    
     const { ApperClient } = window.ApperSDK;
     const apperClient = new ApperClient({
       apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID || 'test-project-id',
@@ -89,6 +105,13 @@ export const createTask = async (taskData) => {
  */
 export const updateTaskRecord = async (taskData) => {
   try {
+    // Check authentication status before updating
+    const { isAuthenticated } = store.getState().user;
+    
+    if (!isAuthenticated) {
+      throw new Error("Authentication required to update tasks");
+    }
+    
     const { ApperClient } = window.ApperSDK;
     const apperClient = new ApperClient({
       apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID || 'test-project-id',
@@ -131,6 +154,13 @@ export const updateTaskRecord = async (taskData) => {
  */
 export const deleteTaskRecord = async (taskId) => {
   try {
+    // Check authentication status before deleting
+    const { isAuthenticated } = store.getState().user;
+    
+    if (!isAuthenticated) {
+      throw new Error("Authentication required to delete tasks");
+    }
+    
     const { ApperClient } = window.ApperSDK;
     const apperClient = new ApperClient({
       apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID || 'test-project-id',

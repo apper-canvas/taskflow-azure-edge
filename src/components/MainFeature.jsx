@@ -1,9 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
+import { AuthContext } from '../App';
 import getIcon from '../utils/iconUtils';
 
 const MainFeature = () => {
+  const { isAuthenticated } = useContext(AuthContext);
+  const navigate = useNavigate();
+  
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      toast.info("Please log in to view and manage tasks");
+    }
+  }, [isAuthenticated, navigate]);
+  
+  // If not authenticated, don't render the component
+  if (!isAuthenticated) {
+    return null;
+  }
+  
   // Icon declarations
   const Plus = getIcon('Plus');
   const X = getIcon('X');

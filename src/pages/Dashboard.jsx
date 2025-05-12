@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,6 +12,7 @@ import {
   setLoading,
   setError
 } from '../store/taskSlice';
+import { AuthContext } from '../App';
 import TaskForm from '../components/TaskForm';
 import TaskItem from '../components/TaskItem';
 import { fetchTasks, createTask, updateTaskRecord, deleteTaskRecord } from '../services/taskService';
@@ -18,8 +20,18 @@ import getIcon from '../utils/iconUtils';
 
 const Dashboard = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { tasks, isLoading, error, filter } = useSelector(state => state.tasks);
   const user = useSelector(state => state.user.user);
+  const { isAuthenticated } = useContext(AuthContext);
+  
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      toast.info("Please log in to view your dashboard");
+    }
+  }, [isAuthenticated, navigate]);
   
   // Icon declarations
   const Plus = getIcon('Plus');
@@ -38,22 +50,29 @@ const Dashboard = () => {
     Owner: user?.userId || null
   });
   
-  // Fetch tasks on component mount
+  // Fetch tasks on component mount if authenticated
   useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        dispatch(setLoading(true));
-        const tasksData = await fetchTasks();
-        dispatch(setTasks(tasksData));
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-        dispatch(setError("Failed to load tasks. Please try again."));
-        toast.error("Failed to load tasks. Please try again.");
-      }
-    };
-    
-    loadTasks();
-  }, [dispatch]);
+    if (isAuthenticated) {
+      const loadTasks = async () => {
+        try {
+          dispatch(setLoading(true));
+          const tasksData = await fetchTasks();
+          dispatch(setTasks(tasksData));
+        } catch (error) {
+          console.error("Error fetching tasks:", error);
+          dispatch(setError("Failed to load tasks. Please try again."));
+          toast.error("Failed to load tasks. Please try again.");
+        }
+      };
+      
+      loadTasks();
+    }
+  }, [dispatch, isAuthenticated]);
+  
+  // If not authenticated, don't render the component
+  if (!isAuthenticated) {
+    return null;
+  }
   
   // Filter tasks based on the selected filter
   const filteredTasks = tasks.filter(task => {
