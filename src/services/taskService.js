@@ -42,6 +42,11 @@ export const fetchTasks = async () => {
       }
     };
     
+    // Only proceed with the fetch if authenticated
+    if (!isAuthenticated) {
+      throw new Error("Authentication required");
+    }
+    
     const response = await apperClient.fetchRecords("task23", params);
     
     if (!response || !response.data || response.data.length === 0) {

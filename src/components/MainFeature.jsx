@@ -9,15 +9,7 @@ const MainFeature = () => {
   const { isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
   
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      toast.info("Please log in to view and manage tasks");
-    }
-  }, [isAuthenticated, navigate]);
-  
-  // If not authenticated, don't render the component
+  // If not authenticated, don't render any task data
   if (!isAuthenticated) {
     return null;
   }
@@ -35,18 +27,21 @@ const MainFeature = () => {
   
   // State management
   const [tasks, setTasks] = useState(() => {
-    // Load tasks from localStorage if available
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : [
-      { 
-        id: 1, 
-        title: "Create your first task",
-        description: "Click the + button to add your own tasks",
-        status: "pending",
-        priority: "medium",
-        dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0] // Tomorrow
-      }
-    ];
+    // Load tasks from localStorage if available and user is authenticated
+    if (isAuthenticated) {
+      const savedTasks = localStorage.getItem('tasks');
+      return savedTasks ? JSON.parse(savedTasks) : [
+        { 
+          id: 1, 
+          title: "Create your first task",
+          description: "Click the + button to add your own tasks",
+          status: "pending",
+          priority: "medium",
+          dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0] // Tomorrow
+        }
+      ];
+    }
+    return [];
   });
   
   const [showForm, setShowForm] = useState(false);
@@ -63,8 +58,10 @@ const MainFeature = () => {
   
   // Save tasks to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }, [tasks]);
+    if (isAuthenticated) {
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+  }, [tasks, isAuthenticated]);
   
   // Filter tasks based on the selected filter
   const filteredTasks = tasks.filter(task => {

@@ -108,7 +108,7 @@ function App() {
 
         <main className="flex-grow">
           <Routes>
-            {/* Public routes - accessible to everyone */}
+            {/* Public route with conditional content based on auth status */}
             <Route path="/" element={<Home />} />
             
             {/* Public routes - accessible only when NOT authenticated */}
